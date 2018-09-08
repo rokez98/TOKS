@@ -2,7 +2,9 @@
 using System.IO.Ports;
 using System.Windows.Forms;
 using TOKS.Logger;
+using TOKS.SerialPortCommunicator.Core;
 using TOKS.SerialPortCommunicator.Enums;
+using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
 using TOKS.UI.Extensions;
 
@@ -16,11 +18,14 @@ namespace TOKS.UI
         {
             InitializeComponent();
 
-            _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator();
+            IMessageCoder coder = new BaseCoder();
+            coder = new BitstuffCoder(coder);
+
+            _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
 
             baudrateComboBox.InitializeWithEnum(typeof(EBaudRate), item => (int) item, selectedIndex: 1);
             dataBitsComboBox.InitializeWithEnum(typeof(EDataBits), item => (int) item, selectedIndex: 3);
-            parityComboBox.InitializeWithEnum(typeof(Parity), item => (int) item, selectedIndex: 0);
+            parityComboBox.InitializeWithEnum(typeof(Parity), item => item, selectedIndex: 0);
             stopBitsComboBox.InitializeWithEnum(typeof(StopBits), item => item, selectedIndex: 1);
 
             RefreshView();
@@ -50,7 +55,7 @@ namespace TOKS.UI
 
             try
             {
-                _serialPortCommunicator.Open(serialPortConfig, OnMessageRecieved);
+                _serialPortCommunicator.Open(serialPortConfig, OnMessageRecieved, OnErrorRecieved);
             }
             catch (Exception ex)
             {
@@ -70,7 +75,6 @@ namespace TOKS.UI
             try
             {
                 var message = _serialPortCommunicator.Read();
-                outputTextBox.Clear();
                 outputTextBox.AppendText(message);
             }
             catch (Exception ex)
@@ -78,6 +82,12 @@ namespace TOKS.UI
                 InternalLogger.Log.Error("An exception occured during recieving message!", ex);
                 ShowErrorBox(ex.Message);
             }
+        }
+
+        public void OnErrorRecieved(object sender, EventArgs args)
+        {
+            ShowErrorBox("An exception occured!");
+            InternalLogger.Log.Error("An exception occured!");
         }
 
         private void startStopButton_Click(object sender, EventArgs e)

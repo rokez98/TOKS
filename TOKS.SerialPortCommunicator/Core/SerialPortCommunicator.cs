@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
-using System.Text;
 using TOKS.Logger;
-using TOKS.SerialPortCommunicator.Enums;
+using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
 
 namespace TOKS.SerialPortCommunicator.Core
@@ -13,17 +10,24 @@ namespace TOKS.SerialPortCommunicator.Core
     public class SerialPortCommunicator
     {
         private SerialPort _serialPort;
+        private IMessageCoder _coder;
 
         public delegate void ReceivedEventHandler(object sender, EventArgs e);
+        public delegate void ErrorEventHandler(object sender, EventArgs e);
 
         public bool IsOpen => _serialPort != null;
+
+        public SerialPortCommunicator(IMessageCoder coder)
+        {
+            _coder = coder;
+        }
 
         /// <summary>
         /// Open port with settings
         /// </summary>
         /// <param name="config">Serial port configuration</param>
         /// <param name="messageReceivedEventHandler">Callback to run to when something is received</param>
-        public void Open(SerialPortConfig config, ReceivedEventHandler messageReceivedEventHandler)
+        public void Open(SerialPortConfig config, ReceivedEventHandler messageReceivedEventHandler, ErrorEventHandler errorEventHandler)
         {
             if (IsOpen) return;
             InternalLogger.Log.Debug("Opening serial port");
@@ -38,6 +42,7 @@ namespace TOKS.SerialPortCommunicator.Core
             _serialPort.Open();
 
             if (messageReceivedEventHandler != null) _serialPort.DataReceived += (sender, args) => messageReceivedEventHandler(sender, args);
+            if (errorEventHandler != null) _serialPort.ErrorReceived += (sender, args) => errorEventHandler(sender, args);
         }
 
         /// <summary>
@@ -62,9 +67,9 @@ namespace TOKS.SerialPortCommunicator.Core
 
             var buffer = new byte[_serialPort.BytesToRead];
             _serialPort.Read(buffer, 0, buffer.Length);
-            InternalLogger.Log.Debug($"Message in bytes: {buffer}");
+            InternalLogger.Log.Debug($"Message in bytes: {String.Join(" ", buffer.ToArray())}");
 
-            var message = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+            var message = _coder.Decode(buffer);
             InternalLogger.Log.Debug($"Message text: {message}");
             return message;
         }
@@ -76,7 +81,8 @@ namespace TOKS.SerialPortCommunicator.Core
         public void Send(string message)
         {
             InternalLogger.Log.Debug($"Sending message: {message}");
-            _serialPort.Write(message.ToArray(), 0, message.Length);
+            var encoded = _coder.Encode(message);
+            _serialPort.Write(encoded, 0, encoded.Length);
         }
     }
 }
