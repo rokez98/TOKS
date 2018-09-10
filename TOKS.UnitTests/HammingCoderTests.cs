@@ -23,9 +23,19 @@ namespace TOKS.UnitTests
         {
             var coder = new HammingCoder(new BaseCoder());
 
-            var res = coder.InitializeControlBits("1111111");
+            var res = coder.InitializeControlBits("11111111");
 
-            Assert.AreEqual("00101110111", res);
+            Assert.AreEqual("001011101111", res);
+        }
+
+        [TestMethod]
+        public void InitializeAndExcludeControlBits()
+        {
+            var coder = new HammingCoder(new BaseCoder());
+
+            var res = coder.ExtractControlBits(coder.InitializeControlBits("111111111111111111111111"));
+
+            Assert.AreEqual("111111111111111111111111", res);
         }
 
         [TestMethod]
@@ -59,7 +69,7 @@ namespace TOKS.UnitTests
         public void CalculateControlBit()
         {
             var coder = new HammingCoder(new BaseCoder());
-            var res = coder.CalculateBit("10101010", "11001100");
+            var res = coder.CalculateControlBit("10101010", "11001100");
 
             Assert.AreEqual(false, res);
         }
@@ -68,7 +78,7 @@ namespace TOKS.UnitTests
         public void GetControlLines()
         {
             var coder = new HammingCoder(new BaseCoder());
-            var res = coder.GetControlLines("00100010001011100001");
+            var res = coder.CalculateControlLines("00100010001011100001");
 
             Assert.AreEqual("10101010101010101010", res[0]);
             Assert.AreEqual("01100110011001100110", res[1]);
@@ -79,7 +89,7 @@ namespace TOKS.UnitTests
         public void CalculateControlBits()
         {
             var coder = new HammingCoder(new BaseCoder());
-            var res = coder.CalculateControlBits("00100010001011100001", coder.GetControlLines("00100010001011100001"));
+            var res = coder.CalculateControlBits("00100010001011100001", coder.CalculateControlLines("00100010001011100001"));
 
             Assert.AreEqual(true, res[0]);
             Assert.AreEqual(true, res[1]);
@@ -103,13 +113,30 @@ namespace TOKS.UnitTests
                 var coder = new HammingCoder(new BaseCoder());
                 var message = GenerateRandomMessage();
 
-                var encoded = coder.Encode(message);
-
                 var res = coder.Decode(coder.Encode(message));
 
-
-                Assert.AreEqual(message + "\0", res);
+                Assert.AreEqual(message, res);
             }
+        }
+
+        [TestMethod]
+        public void FixBit()
+        {
+            var coder = new HammingCoder(new BaseCoder());
+
+            var res = coder.FixBit("111", 2);
+
+            Assert.AreEqual("101", res);
+        }
+
+        [TestMethod]
+        public void GetErrorBitNumber()
+        {
+            var coder = new HammingCoder(new BaseCoder());
+
+            var res = coder.GetErrorBitNumber(new List<bool>() { false, true, true, false, false});
+
+            Assert.AreEqual(6, res);
         }
     }
 }

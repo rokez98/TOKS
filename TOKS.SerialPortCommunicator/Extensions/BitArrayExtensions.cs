@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Linq;
+using System.Collections;
 
 namespace TOKS.SerialPortCommunicator.Extensions
 {
@@ -6,7 +8,7 @@ namespace TOKS.SerialPortCommunicator.Extensions
     {
         public static byte[] ToByteArray(this BitArray bitArray)
         {
-            var bytes = new byte[(bitArray.Length + 8 - 1) / 8];
+            var bytes = new byte[(int)Math.Ceiling(bitArray.Length / 8.0)];
             bitArray.CopyTo(bytes, 0);
             return bytes;
         }

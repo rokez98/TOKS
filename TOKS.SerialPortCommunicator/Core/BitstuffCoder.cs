@@ -7,8 +7,8 @@ namespace TOKS.SerialPortCommunicator.Core
 {
     public class BitstuffCoder : BaseCoder
     {
-        private const string beforeBitstuff = "11111";
-        private const string afterBitstuff = "111110";
+        private const string beforeBitstuff = "111111";
+        private const string afterBitstuff = "1111101";
 
         public BitstuffCoder(IMessageCoder coder) : base(coder) { }
 
@@ -30,27 +30,6 @@ namespace TOKS.SerialPortCommunicator.Core
             var bitsuffedBytes = StringToBits(bitsuffedString).ToByteArray();
 
             return _coder.Encode(Encoding.Default.GetString(bitsuffedBytes));
-        }
-
-        private string BitsToString(BitArray bitArray)
-        {
-            var result = string.Empty;
-            foreach (var bit in bitArray)
-                result += (bool)bit == true ? "1" : "0"; 
-            return result;
-        }
-
-        private BitArray StringToBits(string text)
-        {
-            var bitArray = new BitArray(text.Length);
-
-            for (int i = 0; i < text.Length; i++)
-                bitArray[i] = text[i] == '1';
-
-            var bytes = new byte[(bitArray.Length + 8 - 1) / 8];
-            bitArray.CopyTo(bytes, 0);
-
-            return bitArray;
         }
     }
 }

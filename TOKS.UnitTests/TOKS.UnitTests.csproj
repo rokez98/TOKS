@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitstuffingCoderTests.cs" />
+    <Compile Include="CoderTests.cs" />
     <Compile Include="HammingCoderTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
