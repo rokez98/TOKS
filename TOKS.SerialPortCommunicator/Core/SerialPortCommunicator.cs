@@ -10,9 +10,10 @@ namespace TOKS.SerialPortCommunicator.Core
     public class SerialPortCommunicator
     {
         private SerialPort _serialPort;
-        private IMessageCoder _coder;
+        private readonly IMessageCoder _coder;
 
         public delegate void ReceivedEventHandler(object sender, EventArgs e);
+
         public delegate void ErrorEventHandler(object sender, EventArgs e);
 
         public bool IsOpen => _serialPort != null;
