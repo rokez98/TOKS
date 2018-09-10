@@ -14,9 +14,11 @@ namespace TOKS.SerialPortCommunicator.Core
         {
         }
 
+        public int GetNumberOfBits(string text) => (int) Math.Ceiling(Math.Log(text.Length, 2));
+
         public List<string> GetControlLines(string code)
         {
-            var length = (int)Math.Log(code.Length, 2) + 1;
+            var length = GetNumberOfBits(code);
             return Enumerable.Range(1, length).Select(i => CalculateControlLine(i, code.Length)).ToList();
         }
 
@@ -34,12 +36,13 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public string InitializeControlBits(string bits)
         {
-            var numberOfBits = Math.Log(bits.Length, 2) + 1;
+            var numberOfBits = (int)Math.Ceiling(Math.Log(bits.Length, 2)) + 1;
 
             for (var i = 0; i < numberOfBits; i++)
             {
-                var n = (int)Math.Pow(2, i) - 1;
-                bits = bits.Insert(n, "0");
+                var n = (int) Math.Pow(2, i) - 1;
+                if (n <= bits.Length) bits = bits.Insert(n, "0");
+                else bits += "0";
             }
 
             return bits;
@@ -47,10 +50,27 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public string InsertControlBits(string bitsString, List<bool> bits)
         {
-            for (int i = 0; i < Math.Pow(2, bits.Count - 2); i++)
+            var chars = bitsString.ToCharArray();
+
+            for (int i = 0; i < bits.Count; i++)
             {
                 var n = (int)Math.Pow(2, i) - 1;
-                bitsString = bitsString.Insert(n, bits[i] ? "1" : "0");
+                chars[n] = bits[i] ? '1' : '0';
+            }
+
+            return new string(chars);
+        }
+
+        public string ExtractControlBits(string bitsString)
+        {
+            var numberOfBits = GetNumberOfBits(bitsString);
+
+            if ((int)Math.Ceiling(Math.Log(bitsString.Length, 2)) != numberOfBits) numberOfBits--;
+
+            for (int i = 0; i < numberOfBits; i++)
+            {
+                var n = (int)Math.Pow(2, i) - 1;
+                bitsString = bitsString.Remove(n - i, 1);
             }
 
             return bitsString;
@@ -70,7 +90,7 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public override byte[] Encode(string message)
         {
-            var bytes = Encoding.UTF8.GetBytes(message);
+            var bytes = Encoding.Default.GetBytes(message);
             var bitString = BitsToString(new BitArray(bytes));
             bitString = InitializeControlBits(bitString);
 
@@ -80,12 +100,23 @@ namespace TOKS.SerialPortCommunicator.Core
             bitString = InsertControlBits(bitString, bits);
             var encodedBytes = StringToBits(bitString).ToByteArray();
 
-            return _coder.Encode(encodedBytes);
+            return _coder.Encode(Encoding.Default.GetString(encodedBytes));
+
+            return encodedBytes;
         }
 
         public override string Decode(byte[] message)
         {
-            return base.Decode(message);
+            var bitString = BitsToString(new BitArray(message));
+            var controlLines = GetControlLines(bitString);
+
+            var sindromBits = CalculateControlBits(bitString, controlLines);
+            // check for 0
+
+            var decodedBitsString = ExtractControlBits(bitString);
+            var decodedBytes = StringToBits(decodedBitsString).ToByteArray();
+
+            return _coder.Decode(decodedBytes);
         }
 
         private string BitsToString(BitArray bitArray)

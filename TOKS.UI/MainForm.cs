@@ -19,7 +19,9 @@ namespace TOKS.UI
             InitializeComponent();
 
             IMessageCoder coder = new BaseCoder();
+
             coder = new BitstuffCoder(coder);
+            coder = new HammingCoder(coder);
 
             _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
 

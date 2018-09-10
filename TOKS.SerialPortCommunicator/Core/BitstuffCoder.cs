@@ -23,13 +23,13 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public override byte[] Encode(string message)
         {
-            var bytes = Encoding.UTF8.GetBytes(message);
+            var bytes = Encoding.Default.GetBytes(message);
 
             var bitString = BitsToString(new BitArray(bytes));
-            var bitsuffedString =  bitString.Replace(beforeBitstuff, afterBitstuff);
+            var bitsuffedString = bitString.Replace(beforeBitstuff, afterBitstuff);
             var bitsuffedBytes = StringToBits(bitsuffedString).ToByteArray();
 
-            return _coder.Encode(bitsuffedBytes);
+            return _coder.Encode(Encoding.Default.GetString(bitsuffedBytes));
         }
 
         private string BitsToString(BitArray bitArray)

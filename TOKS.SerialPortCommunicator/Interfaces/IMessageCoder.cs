@@ -5,6 +5,6 @@
         string Decode(byte[] message);
 
         byte[] Encode(string message);
-        byte[] Encode(byte[] message);
+        //byte[] Encode(byte[] message);
     }
 }

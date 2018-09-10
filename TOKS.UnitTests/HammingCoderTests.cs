@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TOKS.SerialPortCommunicator.Core;
 using TOKS.SerialPortCommunicator.Interfaces;
@@ -9,6 +11,13 @@ namespace TOKS.UnitTests
     [TestClass]
     public class HammingCoderTests
     {
+        public string GenerateRandomMessage()
+        {
+            var path = Path.GetRandomFileName();
+            path = path.Replace(".", "");
+            return path;
+        }
+
         [TestMethod]
         public void InitializeControlBits()
         {
@@ -75,6 +84,32 @@ namespace TOKS.UnitTests
             Assert.AreEqual(true, res[0]);
             Assert.AreEqual(true, res[1]);
             Assert.AreEqual(false, res[3]);
+        }
+
+        [TestMethod]
+        public void ExtractControlBits()
+        {
+            var coder = new HammingCoder(new BaseCoder());
+            var res = coder.ExtractControlBits("00101110111");
+
+            Assert.AreEqual("1111111", res);
+        }
+
+        [TestMethod]
+        public void EncodeMessage()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                var coder = new HammingCoder(new BaseCoder());
+                var message = GenerateRandomMessage();
+
+                var encoded = coder.Encode(message);
+
+                var res = coder.Decode(coder.Encode(message));
+
+
+                Assert.AreEqual(message + "\0", res);
+            }
         }
     }
 }
