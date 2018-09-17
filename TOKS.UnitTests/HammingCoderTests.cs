@@ -108,15 +108,12 @@ namespace TOKS.UnitTests
         [TestMethod]
         public void EncodeMessage()
         {
-            for (int i = 0; i < 1000; i++)
-            {
-                var coder = new HammingCoder(new BaseCoder());
-                var message = GenerateRandomMessage();
+            var coder = new HammingCoder(new BaseCoder());
+            var message = GenerateRandomMessage();
 
-                var res = coder.Decode(coder.Encode(message));
+            var res = coder.Decode(coder.Encode(message));
 
-                Assert.AreEqual(message, res);
-            }
+            Assert.AreEqual(message, res);
         }
 
         [TestMethod]
@@ -134,7 +131,7 @@ namespace TOKS.UnitTests
         {
             var coder = new HammingCoder(new BaseCoder());
 
-            var res = coder.GetErrorBitNumber(new List<bool>() { false, true, true, false, false});
+            var res = coder.GetErrorBitNumber(new List<bool>() { false, true, true, false, false });
 
             Assert.AreEqual(6, res);
         }

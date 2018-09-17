@@ -97,7 +97,9 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public override string Decode(byte[] message)
         {
-            var bitString = BitsToString(new BitArray(message));
+            var baseDecoded = Encoding.Default.GetBytes(_coder.Decode(message));
+
+            var bitString = BitsToString(new BitArray(baseDecoded));
             var controlLines = CalculateControlLines(bitString);
 
             var sindromBits = CalculateControlBits(bitString, controlLines);
@@ -111,7 +113,7 @@ namespace TOKS.SerialPortCommunicator.Core
             var decodedBitsString = ExtractControlBits(bitString);
             var decodedBytes = StringToBits(decodedBitsString).ToByteArray();
 
-            return _coder.Decode(decodedBytes);
+            return Encoding.Default.GetString(decodedBytes).Trim('\0');
         }
 
         public string FixBit(string bitString, int errorBit)

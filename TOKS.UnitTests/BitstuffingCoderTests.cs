@@ -33,5 +33,16 @@ namespace TOKS.UnitTests
             }
         }
 
+        [TestMethod]
+        public void EncodeBitstuffDecode()
+        {
+            var message = "???";
+            var coder = new BitstuffCoder(new BaseCoder());
+
+            var res = coder.Decode(coder.Encode(message));
+
+            Assert.AreEqual(message, res);
+        }
+
     }
 }

@@ -29,5 +29,20 @@ namespace TOKS.UnitTests
 
             Assert.AreEqual(message, res);
         }
+
+        [TestMethod]
+        public void CodersIntegrationWithBitstuffing()
+        {
+            IMessageCoder coder = new BaseCoder();
+
+            coder = new BitstuffCoder(coder);
+            coder = new HammingCoder(coder);
+
+            var message = "???";
+
+            var res = coder.Decode(coder.Encode(message));
+
+            Assert.AreEqual(message, res);
+        }
     }
 }
