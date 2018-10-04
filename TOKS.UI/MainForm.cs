@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
 using System.Windows.Forms;
-using TOKS.Logger;
 using TOKS.SerialPortCommunicator.Core;
 using TOKS.SerialPortCommunicator.Enums;
 using TOKS.SerialPortCommunicator.Interfaces;
@@ -25,8 +24,8 @@ namespace TOKS.UI
 
             _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
 
-            baudrateComboBox.InitializeWithEnum(typeof(EBaudRate), item => (int) item, selectedIndex: 1);
-            dataBitsComboBox.InitializeWithEnum(typeof(EDataBits), item => (int) item, selectedIndex: 3);
+            baudrateComboBox.InitializeWithEnum(typeof(EBaudRate), item => (int)item, selectedIndex: 1);
+            dataBitsComboBox.InitializeWithEnum(typeof(EDataBits), item => (int)item, selectedIndex: 3);
             parityComboBox.InitializeWithEnum(typeof(Parity), item => item, selectedIndex: 0);
             stopBitsComboBox.InitializeWithEnum(typeof(StopBits), item => item, selectedIndex: 1);
 
@@ -55,13 +54,14 @@ namespace TOKS.UI
                 StopBits = (StopBits)stopBitsComboBox.SelectedItem
             };
 
+            _serialPortCommunicator._portId = Convert.ToByte(SenderAddress.Value);
+
             try
             {
                 _serialPortCommunicator.Open(serialPortConfig, OnMessageRecieved, OnErrorRecieved);
             }
             catch (Exception ex)
             {
-                InternalLogger.Log.Error("An exception occured during opening COM port!", ex);
                 ShowErrorBox("Cannot open selected port with selected configuration");
                 _serialPortCommunicator.Close();
             }
@@ -81,7 +81,6 @@ namespace TOKS.UI
             }
             catch (Exception ex)
             {
-                InternalLogger.Log.Error("An exception occured during recieving message!", ex);
                 ShowErrorBox(ex.Message);
             }
         }
@@ -89,7 +88,6 @@ namespace TOKS.UI
         public void OnErrorRecieved(object sender, EventArgs args)
         {
             ShowErrorBox("An exception occured!");
-            InternalLogger.Log.Error("An exception occured!");
         }
 
         private void startStopButton_Click(object sender, EventArgs e)
@@ -125,13 +123,16 @@ namespace TOKS.UI
         {
             try
             {
-                if (inputTextBox.Text != string.Empty) _serialPortCommunicator.Send(inputTextBox.Text);
+                if (inputTextBox.Text != string.Empty)
+                {
+                    var destinationAddress = Convert.ToByte(DestinationAdress.Value);
+                    _serialPortCommunicator.Send(inputTextBox.Text, destinationAddress);
+                }
                 inputTextBox.Clear();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                InternalLogger.Log.Error("An exception occured during send message!", ex);
-                ShowErrorBox(@"Cannot write to port");
+                ShowErrorBox($"Cannot write to port : {ex.Message}");
             }
         }
 

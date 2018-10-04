@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
-using TOKS.Logger;
+using System.Threading;
 using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
 
@@ -9,8 +10,15 @@ namespace TOKS.SerialPortCommunicator.Core
 {
     public class SerialPortCommunicator
     {
+        private int SECOND_DELAY = 1000;
+
+        private const byte JAM_SIGNAL = 125;
+        private const byte END_OF_MESSAGE = 126;
+
         private SerialPort _serialPort;
         private readonly IMessageCoder _coder;
+
+        public byte _portId { get; set; }
 
         public delegate void ReceivedEventHandler(object sender, EventArgs e);
 
@@ -31,7 +39,7 @@ namespace TOKS.SerialPortCommunicator.Core
         public void Open(SerialPortConfig config, ReceivedEventHandler messageReceivedEventHandler, ErrorEventHandler errorEventHandler)
         {
             if (IsOpen) return;
-            InternalLogger.Log.Debug("Opening serial port");
+
             _serialPort = new SerialPort()
             {
                 PortName = config.PortName,
@@ -51,8 +59,6 @@ namespace TOKS.SerialPortCommunicator.Core
         /// </summary>
         public void Close()
         {
-            InternalLogger.Log.Debug("Closing serial port");
-
             if (!IsOpen) return;
             _serialPort.Close();
             _serialPort = null;
@@ -64,14 +70,36 @@ namespace TOKS.SerialPortCommunicator.Core
         /// <returns>Existing string</returns>
         public string Read()
         {
-            InternalLogger.Log.Debug("Reading message from port");
-
             var buffer = new byte[_serialPort.BytesToRead];
-            _serialPort.Read(buffer, 0, buffer.Length);
-            InternalLogger.Log.Debug($"Message in bytes: {String.Join(" ", buffer.ToArray())}");
 
-            var message = _coder.Decode(buffer);
-            InternalLogger.Log.Debug($"Message text: {message}");
+            var receiveBuffer = new List<Byte>();
+
+            byte[] destinationAddress = new byte[1];
+            _serialPort.Read(destinationAddress, 0, 1);
+            if (destinationAddress.First() != _portId) return String.Empty;
+
+
+            while (true)
+            {
+                byte[] b = new byte[1];
+                if (_serialPort.BytesToRead == 0)
+                {
+                    continue;
+                }
+                _serialPort.Read(b, 0, 1);
+                if (b[0] == END_OF_MESSAGE) break;
+
+                if (b[0] == JAM_SIGNAL)
+                {
+                    receiveBuffer.RemoveAt(receiveBuffer.Count - 1);
+                    continue;
+                }
+                receiveBuffer.Add(b[0]);
+            }
+
+
+            var message = _coder.Decode(receiveBuffer.ToArray());
+
             return message;
         }
 
@@ -79,11 +107,45 @@ namespace TOKS.SerialPortCommunicator.Core
         /// Sending message to serial port
         /// </summary>
         /// <param name="message">Sending message</param>
-        public void Send(string message)
+        public void Send(string message, byte destinationAddress)
         {
-            InternalLogger.Log.Debug($"Sending message: {message}");
-            var encoded = _coder.Encode(message);
-            _serialPort.Write(encoded, 0, encoded.Length);
+            var msgArray = _coder.Encode(message).ToList();
+            msgArray.Insert(0, destinationAddress);
+
+            foreach (Byte item in msgArray)
+            {
+                for (int numberOfAttempt = 0; ; numberOfAttempt++)
+                {
+                    _serialPort.Write(new byte[] { item }, 0, 1);
+                    
+                    Thread.Sleep(10);
+
+                    if (isCollide())
+                    {
+                        _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
+
+                        delaySending(numberOfAttempt);
+                    }
+                    else break;
+                }
+            }
+            _serialPort.Write(new byte[] { END_OF_MESSAGE }, 0, 1);
         }
+
+        public bool isCollide() => timeOdd();
+
+        public bool isChannelBusy() => timeOdd();
+
+        public void waitFree()
+        {
+            if (isChannelBusy())
+            {
+                Thread.Sleep(SECOND_DELAY);
+            }
+        }
+
+        public void delaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))) * 10);
+
+        private bool timeOdd() => DateTime.Now.Second % 2 == 0;
     }
 }

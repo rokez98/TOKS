@@ -38,21 +38,27 @@
             this.baudrateComboBox = new System.Windows.Forms.ComboBox();
             this.dataBitsComboBox = new System.Windows.Forms.ComboBox();
             this.stopBitsComboBox = new System.Windows.Forms.ComboBox();
-            this.parityComboBox = new System.Windows.Forms.ComboBox();
             this.currentPortComboBox = new System.Windows.Forms.ComboBox();
             this.startStopButton = new System.Windows.Forms.Button();
+            this.parityComboBox = new System.Windows.Forms.ComboBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.outputTextBox = new System.Windows.Forms.TextBox();
             this.inputTextBox = new System.Windows.Forms.TextBox();
             this.sendBtn = new System.Windows.Forms.Button();
             this.symbolsTypedLabel = new System.Windows.Forms.Label();
+            this.symbols = new System.Windows.Forms.Label();
             this.recieved = new System.Windows.Forms.Label();
             this.symbolsRecievedLabel = new System.Windows.Forms.Label();
             this.clearBtn = new System.Windows.Forms.Button();
-            this.symbols = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.SenderAddress = new System.Windows.Forms.NumericUpDown();
+            this.DestinationAdress = new System.Windows.Forms.NumericUpDown();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.SenderAddress)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DestinationAdress)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -83,6 +89,8 @@
             this.tableLayoutPanel4.ColumnCount = 2;
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 45F));
             this.tableLayoutPanel4.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 55F));
+            this.tableLayoutPanel4.Controls.Add(this.label2, 0, 6);
+            this.tableLayoutPanel4.Controls.Add(this.label1, 0, 5);
             this.tableLayoutPanel4.Controls.Add(this.currentPortLabel, 0, 0);
             this.tableLayoutPanel4.Controls.Add(this.baudrateLabel, 0, 1);
             this.tableLayoutPanel4.Controls.Add(this.dataBitsLabel, 0, 2);
@@ -91,19 +99,23 @@
             this.tableLayoutPanel4.Controls.Add(this.baudrateComboBox, 1, 1);
             this.tableLayoutPanel4.Controls.Add(this.dataBitsComboBox, 1, 2);
             this.tableLayoutPanel4.Controls.Add(this.stopBitsComboBox, 1, 3);
-            this.tableLayoutPanel4.Controls.Add(this.parityComboBox, 1, 4);
             this.tableLayoutPanel4.Controls.Add(this.currentPortComboBox, 1, 0);
-            this.tableLayoutPanel4.Controls.Add(this.startStopButton, 0, 5);
+            this.tableLayoutPanel4.Controls.Add(this.startStopButton, 1, 7);
+            this.tableLayoutPanel4.Controls.Add(this.parityComboBox, 1, 4);
+            this.tableLayoutPanel4.Controls.Add(this.SenderAddress, 1, 5);
+            this.tableLayoutPanel4.Controls.Add(this.DestinationAdress, 1, 6);
             this.tableLayoutPanel4.Location = new System.Drawing.Point(332, 3);
             this.tableLayoutPanel4.Name = "tableLayoutPanel4";
-            this.tableLayoutPanel4.RowCount = 6;
+            this.tableLayoutPanel4.RowCount = 8;
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.354838F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.032258F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.032258F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 8.709678F));
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 9.032258F));
-            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 56.12903F));
-            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 24F));
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 26F));
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 58F));
+            this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 41F));
             this.tableLayoutPanel4.Size = new System.Drawing.Size(323, 274);
             this.tableLayoutPanel4.TabIndex = 5;
             // 
@@ -128,7 +140,7 @@
             this.baudrateLabel.AutoSize = true;
             this.baudrateLabel.Location = new System.Drawing.Point(3, 25);
             this.baudrateLabel.Name = "baudrateLabel";
-            this.baudrateLabel.Size = new System.Drawing.Size(139, 24);
+            this.baudrateLabel.Size = new System.Drawing.Size(139, 25);
             this.baudrateLabel.TabIndex = 0;
             this.baudrateLabel.Text = "Baudrate";
             this.baudrateLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -139,9 +151,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataBitsLabel.AutoSize = true;
-            this.dataBitsLabel.Location = new System.Drawing.Point(3, 49);
+            this.dataBitsLabel.Location = new System.Drawing.Point(3, 50);
             this.dataBitsLabel.Name = "dataBitsLabel";
-            this.dataBitsLabel.Size = new System.Drawing.Size(139, 24);
+            this.dataBitsLabel.Size = new System.Drawing.Size(139, 25);
             this.dataBitsLabel.TabIndex = 0;
             this.dataBitsLabel.Text = "Data bits";
             this.dataBitsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -152,9 +164,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.stopBitsLabel.AutoSize = true;
-            this.stopBitsLabel.Location = new System.Drawing.Point(3, 73);
+            this.stopBitsLabel.Location = new System.Drawing.Point(3, 75);
             this.stopBitsLabel.Name = "stopBitsLabel";
-            this.stopBitsLabel.Size = new System.Drawing.Size(139, 23);
+            this.stopBitsLabel.Size = new System.Drawing.Size(139, 24);
             this.stopBitsLabel.TabIndex = 0;
             this.stopBitsLabel.Text = "Stop bits";
             this.stopBitsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -165,9 +177,9 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.parityLabel.AutoSize = true;
-            this.parityLabel.Location = new System.Drawing.Point(3, 96);
+            this.parityLabel.Location = new System.Drawing.Point(3, 99);
             this.parityLabel.Name = "parityLabel";
-            this.parityLabel.Size = new System.Drawing.Size(139, 24);
+            this.parityLabel.Size = new System.Drawing.Size(139, 25);
             this.parityLabel.TabIndex = 0;
             this.parityLabel.Text = "Parity";
             this.parityLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -191,7 +203,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataBitsComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.dataBitsComboBox.FormattingEnabled = true;
-            this.dataBitsComboBox.Location = new System.Drawing.Point(148, 52);
+            this.dataBitsComboBox.Location = new System.Drawing.Point(148, 53);
             this.dataBitsComboBox.Name = "dataBitsComboBox";
             this.dataBitsComboBox.Size = new System.Drawing.Size(172, 21);
             this.dataBitsComboBox.TabIndex = 1;
@@ -203,22 +215,10 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.stopBitsComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.stopBitsComboBox.FormattingEnabled = true;
-            this.stopBitsComboBox.Location = new System.Drawing.Point(148, 76);
+            this.stopBitsComboBox.Location = new System.Drawing.Point(148, 78);
             this.stopBitsComboBox.Name = "stopBitsComboBox";
             this.stopBitsComboBox.Size = new System.Drawing.Size(172, 21);
             this.stopBitsComboBox.TabIndex = 1;
-            // 
-            // parityComboBox
-            // 
-            this.parityComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.parityComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.parityComboBox.FormattingEnabled = true;
-            this.parityComboBox.Location = new System.Drawing.Point(148, 99);
-            this.parityComboBox.Name = "parityComboBox";
-            this.parityComboBox.Size = new System.Drawing.Size(172, 21);
-            this.parityComboBox.TabIndex = 1;
             // 
             // currentPortComboBox
             // 
@@ -239,13 +239,25 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tableLayoutPanel4.SetColumnSpan(this.startStopButton, 2);
             this.startStopButton.Location = new System.Drawing.Point(3, 235);
-            this.startStopButton.Margin = new System.Windows.Forms.Padding(3, 115, 3, 13);
+            this.startStopButton.Margin = new System.Windows.Forms.Padding(3, 3, 3, 13);
             this.startStopButton.Name = "startStopButton";
             this.startStopButton.Size = new System.Drawing.Size(317, 26);
             this.startStopButton.TabIndex = 0;
             this.startStopButton.Text = "Start";
             this.startStopButton.UseVisualStyleBackColor = true;
             this.startStopButton.Click += new System.EventHandler(this.startStopButton_Click);
+            // 
+            // parityComboBox
+            // 
+            this.parityComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.parityComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.parityComboBox.FormattingEnabled = true;
+            this.parityComboBox.Location = new System.Drawing.Point(148, 102);
+            this.parityComboBox.Name = "parityComboBox";
+            this.parityComboBox.Size = new System.Drawing.Size(172, 21);
+            this.parityComboBox.TabIndex = 1;
             // 
             // tableLayoutPanel2
             // 
@@ -326,6 +338,17 @@
             this.symbolsTypedLabel.TabIndex = 6;
             this.symbolsTypedLabel.Text = "0";
             // 
+            // symbols
+            // 
+            this.symbols.AutoSize = true;
+            this.symbols.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.symbols.Location = new System.Drawing.Point(3, 100);
+            this.symbols.Name = "symbols";
+            this.symbols.Size = new System.Drawing.Size(81, 13);
+            this.symbols.TabIndex = 5;
+            this.symbols.Text = "Symbols typed: ";
+            this.symbols.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
             // recieved
             // 
             this.recieved.AutoSize = true;
@@ -355,16 +378,55 @@
             this.clearBtn.UseVisualStyleBackColor = true;
             this.clearBtn.Click += new System.EventHandler(this.clearBtn_Click);
             // 
-            // symbols
+            // label1
             // 
-            this.symbols.AutoSize = true;
-            this.symbols.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.symbols.Location = new System.Drawing.Point(3, 100);
-            this.symbols.Name = "symbols";
-            this.symbols.Size = new System.Drawing.Size(81, 13);
-            this.symbols.TabIndex = 5;
-            this.symbols.Text = "Symbols typed: ";
-            this.symbols.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 124);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(139, 24);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Sender Address";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 148);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(139, 26);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Destination Address";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // SenderAddress
+            // 
+            this.SenderAddress.Location = new System.Drawing.Point(148, 127);
+            this.SenderAddress.Name = "SenderAddress";
+            this.SenderAddress.Size = new System.Drawing.Size(172, 20);
+            this.SenderAddress.TabIndex = 4;
+            this.SenderAddress.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // DestinationAdress
+            // 
+            this.DestinationAdress.Location = new System.Drawing.Point(148, 151);
+            this.DestinationAdress.Name = "DestinationAdress";
+            this.DestinationAdress.Size = new System.Drawing.Size(172, 20);
+            this.DestinationAdress.TabIndex = 5;
+            this.DestinationAdress.Value = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
             // 
             // MainWindow
             // 
@@ -379,6 +441,8 @@
             this.tableLayoutPanel4.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.SenderAddress)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.DestinationAdress)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -406,6 +470,10 @@
         private System.Windows.Forms.Label recieved;
         private System.Windows.Forms.TextBox outputTextBox;
         private System.Windows.Forms.Button clearBtn;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.NumericUpDown SenderAddress;
+        private System.Windows.Forms.NumericUpDown DestinationAdress;
     }
 }
 

@@ -14,9 +14,9 @@ namespace TOKS.SerialPortCommunicator.Core
         {
         }
 
-        public int GetNumberOfBitsToInsert(int length) => Enumerable.Range(0, length).First(i => length + i <= Math.Pow(2, i));
+        private int GetNumberOfBitsToInsert(int length) => Enumerable.Range(0, length).First(i => length + i < Math.Pow(2, i));
 
-        public int GetNumberOfContainedBits(int length) => Enumerable.Range(0, length).First(i => length - i < Math.Pow(2, i));
+        private int GetNumberOfContainedBits(int length) => Enumerable.Range(0, length).First(i => length - i < Math.Pow(2, i));
 
         public List<string> CalculateControlLines(string code)
         {
@@ -103,7 +103,7 @@ namespace TOKS.SerialPortCommunicator.Core
             var controlLines = CalculateControlLines(bitString);
 
             var sindromBits = CalculateControlBits(bitString, controlLines);
-            
+
             if (!sindromBits.All(bit => bit == false))
             {
                 var errorBit = GetErrorBitNumber(sindromBits);
@@ -118,10 +118,8 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public string FixBit(string bitString, int errorBit)
         {
-            var b = bitString[errorBit];
-            bitString = bitString.Remove(errorBit - 1, 1);
-            bitString = bitString.Insert(errorBit - 1, b == '1' ? "0" : "1");
-            return bitString;
+            var bit = bitString[errorBit];
+            return bitString.Remove(errorBit - 1, 1).Insert(errorBit - 1, bit == '1' ? "0" : "1");
         }
 
         public int GetErrorBitNumber(List<bool> bits)

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Text;
-using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Extensions;
+using TOKS.SerialPortCommunicator.Interfaces;
 
 namespace TOKS.SerialPortCommunicator.Core
 {
