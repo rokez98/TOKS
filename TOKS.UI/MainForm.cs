@@ -19,9 +19,6 @@ namespace TOKS.UI
 
             IMessageCoder coder = new BaseCoder();
 
-            coder = new BitstuffCoder(coder);
-            coder = new HammingCoder(coder);
-
             _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
 
             baudrateComboBox.InitializeWithEnum(typeof(EBaudRate), item => (int)item, selectedIndex: 1);
@@ -109,6 +106,8 @@ namespace TOKS.UI
             dataBitsComboBox.Enabled = !isStarted;
             stopBitsComboBox.Enabled = !isStarted;
             parityComboBox.Enabled = !isStarted;
+            SenderAddress.Enabled = !isStarted;
+
             inputTextBox.Enabled = isStarted;
 
             startStopButton.Text = (isStarted ? "Stop" : "Start");

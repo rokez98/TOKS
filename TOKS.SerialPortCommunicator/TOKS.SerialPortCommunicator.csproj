@@ -47,6 +47,7 @@
     <Compile Include="Core\SerialPortCommunicator.cs" />
     <Compile Include="Enums\EBaudRate.cs" />
     <Compile Include="Enums\EDataBits.cs" />
+    <Compile Include="Exceptions\IncorrectFCSException.cs" />
     <Compile Include="Extensions\BitArrayExtensions.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Interfaces\IMessageCoder.cs" />
@@ -54,8 +55,6 @@
     <Compile Include="Models\SerialPortConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

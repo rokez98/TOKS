@@ -30,6 +30,8 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.tableLayoutPanel4 = new System.Windows.Forms.TableLayoutPanel();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.currentPortLabel = new System.Windows.Forms.Label();
             this.baudrateLabel = new System.Windows.Forms.Label();
             this.dataBitsLabel = new System.Windows.Forms.Label();
@@ -41,6 +43,8 @@
             this.currentPortComboBox = new System.Windows.Forms.ComboBox();
             this.startStopButton = new System.Windows.Forms.Button();
             this.parityComboBox = new System.Windows.Forms.ComboBox();
+            this.SenderAddress = new System.Windows.Forms.NumericUpDown();
+            this.DestinationAdress = new System.Windows.Forms.NumericUpDown();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.outputTextBox = new System.Windows.Forms.TextBox();
             this.inputTextBox = new System.Windows.Forms.TextBox();
@@ -50,15 +54,11 @@
             this.recieved = new System.Windows.Forms.Label();
             this.symbolsRecievedLabel = new System.Windows.Forms.Label();
             this.clearBtn = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.SenderAddress = new System.Windows.Forms.NumericUpDown();
-            this.DestinationAdress = new System.Windows.Forms.NumericUpDown();
             this.tableLayoutPanel1.SuspendLayout();
             this.tableLayoutPanel4.SuspendLayout();
-            this.tableLayoutPanel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SenderAddress)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.DestinationAdress)).BeginInit();
+            this.tableLayoutPanel2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -118,6 +118,32 @@
             this.tableLayoutPanel4.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 41F));
             this.tableLayoutPanel4.Size = new System.Drawing.Size(323, 274);
             this.tableLayoutPanel4.TabIndex = 5;
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 148);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(139, 26);
+            this.label2.TabIndex = 3;
+            this.label2.Text = "Destination Address";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 124);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(139, 24);
+            this.label1.TabIndex = 3;
+            this.label1.Text = "Sender Address";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // currentPortLabel
             // 
@@ -259,6 +285,30 @@
             this.parityComboBox.Size = new System.Drawing.Size(172, 21);
             this.parityComboBox.TabIndex = 1;
             // 
+            // SenderAddress
+            // 
+            this.SenderAddress.Location = new System.Drawing.Point(148, 127);
+            this.SenderAddress.Name = "SenderAddress";
+            this.SenderAddress.Size = new System.Drawing.Size(172, 20);
+            this.SenderAddress.TabIndex = 4;
+            this.SenderAddress.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // DestinationAdress
+            // 
+            this.DestinationAdress.Location = new System.Drawing.Point(148, 151);
+            this.DestinationAdress.Name = "DestinationAdress";
+            this.DestinationAdress.Size = new System.Drawing.Size(172, 20);
+            this.DestinationAdress.TabIndex = 5;
+            this.DestinationAdress.Value = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            // 
             // tableLayoutPanel2
             // 
             this.tableLayoutPanel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -378,71 +428,23 @@
             this.clearBtn.UseVisualStyleBackColor = true;
             this.clearBtn.Click += new System.EventHandler(this.clearBtn_Click);
             // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 124);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(139, 24);
-            this.label1.TabIndex = 3;
-            this.label1.Text = "Sender Address";
-            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // label2
-            // 
-            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 148);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(139, 26);
-            this.label2.TabIndex = 3;
-            this.label2.Text = "Destination Address";
-            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // SenderAddress
-            // 
-            this.SenderAddress.Location = new System.Drawing.Point(148, 127);
-            this.SenderAddress.Name = "SenderAddress";
-            this.SenderAddress.Size = new System.Drawing.Size(172, 20);
-            this.SenderAddress.TabIndex = 4;
-            this.SenderAddress.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // DestinationAdress
-            // 
-            this.DestinationAdress.Location = new System.Drawing.Point(148, 151);
-            this.DestinationAdress.Name = "DestinationAdress";
-            this.DestinationAdress.Size = new System.Drawing.Size(172, 20);
-            this.DestinationAdress.TabIndex = 5;
-            this.DestinationAdress.Value = new decimal(new int[] {
-            2,
-            0,
-            0,
-            0});
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(676, 298);
             this.Controls.Add(this.tableLayoutPanel1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            this.MaximizeBox = false;
             this.Name = "MainWindow";
             this.Text = "Serial port communicator";
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel4.ResumeLayout(false);
             this.tableLayoutPanel4.PerformLayout();
-            this.tableLayoutPanel2.ResumeLayout(false);
-            this.tableLayoutPanel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.SenderAddress)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.DestinationAdress)).EndInit();
+            this.tableLayoutPanel2.ResumeLayout(false);
+            this.tableLayoutPanel2.PerformLayout();
             this.ResumeLayout(false);
 
         }

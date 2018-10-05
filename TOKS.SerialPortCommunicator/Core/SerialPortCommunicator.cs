@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
+using System.Linq;
 using System.Threading;
+using TOKS.SerialPortCommunicator.Exceptions;
 using TOKS.SerialPortCommunicator.Extensions;
 using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
@@ -21,7 +24,7 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public delegate void ErrorEventHandler(object sender, EventArgs e);
 
-        public bool IsOpen => _serialPort != null;
+        public bool IsOpen => _serialPort?.IsOpen ?? false;
 
         public SerialPortCommunicator(IMessageCoder coder)
         {
@@ -58,6 +61,7 @@ namespace TOKS.SerialPortCommunicator.Core
         {
             if (!IsOpen) return;
             _serialPort.Close();
+            _serialPort.Dispose();
             _serialPort = null;
         }
 
@@ -71,9 +75,11 @@ namespace TOKS.SerialPortCommunicator.Core
 
             _serialPort.Read(buffer, 0, buffer.Length);
 
-            if (isJamSignalRecieved(buffer)) return String.Empty;
+            if (IsJamSignalRecieved(buffer)) return String.Empty;
 
             var package = buffer.ToPackage();
+
+            if (package.FCS != CalculateFcs(package.Message)) throw new IncorrectFCSException("FCS is incorrect!");
 
             if (package.DestinationAddress != _portId) return String.Empty;
 
@@ -85,6 +91,7 @@ namespace TOKS.SerialPortCommunicator.Core
         /// Sending message to serial port
         /// </summary>
         /// <param name="message">Sending message</param>
+        /// <param name="destinationAddress">Destination address</param>
         public void Send(string message, byte destinationAddress)
         {
             var byteMessage = _coder.Encode(message);
@@ -95,16 +102,16 @@ namespace TOKS.SerialPortCommunicator.Core
                 SenderAddress = _portId,
                 Length = (short)byteMessage.Length,
                 Message = byteMessage,
-                FCS = 1
+                FCS = CalculateFcs(byteMessage)
             };
 
             var msgArray = package.ToByteArray();
 
             for (int numberOfAttempt = 0; ; numberOfAttempt++)
             {
-                waitFree();
+                while (IsChannelBusy());
 
-                if (!isCollide())
+                if (!IsCollisionOccured())
                 {
                     _serialPort.Write(msgArray, 0, msgArray.Length);
                     break;
@@ -112,27 +119,28 @@ namespace TOKS.SerialPortCommunicator.Core
                 else
                 {
                     _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
-                    delaySending(numberOfAttempt);
+                    DelaySending(numberOfAttempt);
                 }
             }
         }
 
-        public bool isCollide() => timeOdd();
+        /// <summary>
+        /// Calculate Fcs info
+        /// </summary>
+        /// <param name="message">Message to calculate FCS</param>
+        /// <returns>
+        /// File control sum
+        /// </returns>
+        private int CalculateFcs(IEnumerable<byte> message) => message.Aggregate(0, (fcs, b) => fcs ^ b);
 
-        public bool isChannelBusy() => timeOdd();
+        private bool IsCollisionOccured() => TimeOdd();
 
-        public bool isJamSignalRecieved(byte[] message) => message.Length == 1 && message[0] == JAM_SIGNAL;
+        private bool IsChannelBusy() => TimeOdd();
 
-        public void waitFree()
-        {
-            if (isChannelBusy())
-            {
-                Thread.Sleep(100);
-            }
-        }
+        private bool IsJamSignalRecieved(byte[] message) => message.Length == 1 && message[0] == JAM_SIGNAL;
 
-        public void delaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))) * 10);
+        private void DelaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))));
 
-        private bool timeOdd() => DateTime.Now.Millisecond % 2 == 0;
+        private bool TimeOdd() => DateTime.Now.Millisecond % 2 == 0;
     }
 }
