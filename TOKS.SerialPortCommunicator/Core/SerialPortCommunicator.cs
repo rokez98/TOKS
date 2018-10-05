@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO.Ports;
-using System.Linq;
 using System.Threading;
+using TOKS.SerialPortCommunicator.Extensions;
 using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
 
@@ -10,10 +9,8 @@ namespace TOKS.SerialPortCommunicator.Core
 {
     public class SerialPortCommunicator
     {
-        private int SECOND_DELAY = 1000;
-
         private const byte JAM_SIGNAL = 125;
-        private const byte END_OF_MESSAGE = 126;
+        private const byte COUNT = 125;
 
         private SerialPort _serialPort;
         private readonly IMessageCoder _coder;
@@ -43,9 +40,9 @@ namespace TOKS.SerialPortCommunicator.Core
             _serialPort = new SerialPort()
             {
                 PortName = config.PortName,
-                BaudRate = (int) config.BaudRate,
+                BaudRate = (int)config.BaudRate,
                 Parity = config.Parity,
-                DataBits = (int) config.DataBits,
+                DataBits = (int)config.DataBits,
                 StopBits = config.StopBits
             };
             _serialPort.Open();
@@ -72,34 +69,15 @@ namespace TOKS.SerialPortCommunicator.Core
         {
             var buffer = new byte[_serialPort.BytesToRead];
 
-            var receiveBuffer = new List<Byte>();
+            _serialPort.Read(buffer, 0, buffer.Length);
 
-            byte[] destinationAddress = new byte[1];
-            _serialPort.Read(destinationAddress, 0, 1);
-            if (destinationAddress.First() != _portId) return String.Empty;
+            if (isJamSignalRecieved(buffer)) return String.Empty;
 
+            var package = buffer.ToPackage();
 
-            while (true)
-            {
-                byte[] b = new byte[1];
-                if (_serialPort.BytesToRead == 0)
-                {
-                    continue;
-                }
-                _serialPort.Read(b, 0, 1);
-                if (b[0] == END_OF_MESSAGE) break;
+            if (package.DestinationAddress != _portId) return String.Empty;
 
-                if (b[0] == JAM_SIGNAL)
-                {
-                    receiveBuffer.RemoveAt(receiveBuffer.Count - 1);
-                    continue;
-                }
-                receiveBuffer.Add(b[0]);
-            }
-
-
-            var message = _coder.Decode(receiveBuffer.ToArray());
-
+            var message = _coder.Decode(package.Message);
             return message;
         }
 
@@ -109,43 +87,52 @@ namespace TOKS.SerialPortCommunicator.Core
         /// <param name="message">Sending message</param>
         public void Send(string message, byte destinationAddress)
         {
-            var msgArray = _coder.Encode(message).ToList();
-            msgArray.Insert(0, destinationAddress);
+            var byteMessage = _coder.Encode(message);
 
-            foreach (Byte item in msgArray)
+            var package = new Package()
             {
-                for (int numberOfAttempt = 0; ; numberOfAttempt++)
+                DestinationAddress = destinationAddress,
+                SenderAddress = _portId,
+                Length = (short)byteMessage.Length,
+                Message = byteMessage,
+                FCS = 1
+            };
+
+            var msgArray = package.ToByteArray();
+
+            for (int numberOfAttempt = 0; ; numberOfAttempt++)
+            {
+                waitFree();
+
+                if (!isCollide())
                 {
-                    _serialPort.Write(new byte[] { item }, 0, 1);
-                    
-                    Thread.Sleep(10);
-
-                    if (isCollide())
-                    {
-                        _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
-
-                        delaySending(numberOfAttempt);
-                    }
-                    else break;
+                    _serialPort.Write(msgArray, 0, msgArray.Length);
+                    break;
+                }
+                else
+                {
+                    _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
+                    delaySending(numberOfAttempt);
                 }
             }
-            _serialPort.Write(new byte[] { END_OF_MESSAGE }, 0, 1);
         }
 
         public bool isCollide() => timeOdd();
 
         public bool isChannelBusy() => timeOdd();
 
+        public bool isJamSignalRecieved(byte[] message) => message.Length == 1 && message[0] == JAM_SIGNAL;
+
         public void waitFree()
         {
             if (isChannelBusy())
             {
-                Thread.Sleep(SECOND_DELAY);
+                Thread.Sleep(100);
             }
         }
 
         public void delaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))) * 10);
 
-        private bool timeOdd() => DateTime.Now.Second % 2 == 0;
+        private bool timeOdd() => DateTime.Now.Millisecond % 2 == 0;
     }
 }

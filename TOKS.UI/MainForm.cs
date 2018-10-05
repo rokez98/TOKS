@@ -62,7 +62,7 @@ namespace TOKS.UI
             }
             catch (Exception ex)
             {
-                ShowErrorBox("Cannot open selected port with selected configuration");
+                ShowErrorBox($"Cannot open selected port with selected configuration: {ex.Message}");
                 _serialPortCommunicator.Close();
             }
         }
@@ -77,7 +77,7 @@ namespace TOKS.UI
             try
             {
                 var message = _serialPortCommunicator.Read();
-                outputTextBox.AppendText(message);
+                Invoke((MethodInvoker) delegate { outputTextBox.AppendText(message); });
             }
             catch (Exception ex)
             {

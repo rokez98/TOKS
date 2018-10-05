@@ -113,7 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TOKS.SerialPortCommunicator\TOKS.SerialPortCommunicator.csproj">
-      <Project>{FD93515F-FECA-4BFE-AC5F-276233E26E76}</Project>
+      <Project>{8f84119c-6f14-401f-a3f9-dbbc322a49bd}</Project>
       <Name>TOKS.SerialPortCommunicator</Name>
     </ProjectReference>
   </ItemGroup>
