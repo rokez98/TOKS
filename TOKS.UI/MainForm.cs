@@ -45,13 +45,12 @@ namespace TOKS.UI
             var serialPortConfig = new SerialPortConfig()
             {
                 PortName = (string)currentPortComboBox.SelectedItem,
+                PortId = Convert.ToByte(SenderAddress.Value),
                 BaudRate = (EBaudRate)baudrateComboBox.SelectedItem,
                 Parity = (Parity)parityComboBox.SelectedItem,
                 DataBits = (EDataBits)dataBitsComboBox.SelectedItem,
                 StopBits = (StopBits)stopBitsComboBox.SelectedItem
             };
-
-            _serialPortCommunicator._portId = Convert.ToByte(SenderAddress.Value);
 
             try
             {
@@ -74,7 +73,7 @@ namespace TOKS.UI
             try
             {
                 var message = _serialPortCommunicator.Read();
-                Invoke((MethodInvoker) delegate { outputTextBox.AppendText(message); });
+                Invoke((MethodInvoker)delegate { outputTextBox.AppendText(message); });
             }
             catch (Exception ex)
             {

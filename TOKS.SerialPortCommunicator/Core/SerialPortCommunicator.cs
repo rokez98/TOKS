@@ -13,12 +13,11 @@ namespace TOKS.SerialPortCommunicator.Core
     public class SerialPortCommunicator
     {
         private const byte JAM_SIGNAL = 125;
-        private const byte COUNT = 125;
 
         private SerialPort _serialPort;
-        private readonly IMessageCoder _coder;
+        private byte _portId;
 
-        public byte _portId { get; set; }
+        private readonly IMessageCoder _coder;
 
         public delegate void ReceivedEventHandler(object sender, EventArgs e);
 
@@ -48,6 +47,8 @@ namespace TOKS.SerialPortCommunicator.Core
                 DataBits = (int)config.DataBits,
                 StopBits = config.StopBits
             };
+            _portId = config.PortId;
+
             _serialPort.Open();
 
             if (messageReceivedEventHandler != null) _serialPort.DataReceived += (sender, args) => messageReceivedEventHandler(sender, args);
@@ -75,13 +76,13 @@ namespace TOKS.SerialPortCommunicator.Core
 
             _serialPort.Read(buffer, 0, buffer.Length);
 
-            if (IsJamSignalRecieved(buffer)) return String.Empty;
+            if (IsJamSignalRecieved(buffer)) return "<<< JAM SIGNAL RECIEVED >>>\n";
 
             var package = buffer.ToPackage();
 
-            if (package.FCS != CalculateFcs(package.Message)) throw new IncorrectFCSException("FCS is incorrect!");
-
             if (package.DestinationAddress != _portId) return String.Empty;
+
+            if (package.FCS != CalculateFcs(package.Message)) throw new IncorrectFCSException("FCS is incorrect!");
 
             var message = _coder.Decode(package.Message);
             return message;
@@ -109,8 +110,6 @@ namespace TOKS.SerialPortCommunicator.Core
 
             for (int numberOfAttempt = 0; ; numberOfAttempt++)
             {
-                while (IsChannelBusy());
-
                 if (!IsCollisionOccured())
                 {
                     _serialPort.Write(msgArray, 0, msgArray.Length);
@@ -121,6 +120,7 @@ namespace TOKS.SerialPortCommunicator.Core
                     _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
                     DelaySending(numberOfAttempt);
                 }
+                Thread.Sleep(99);
             }
         }
 
@@ -131,16 +131,19 @@ namespace TOKS.SerialPortCommunicator.Core
         /// <returns>
         /// File control sum
         /// </returns>
-        private int CalculateFcs(IEnumerable<byte> message) => message.Aggregate(0, (fcs, b) => fcs ^ b);
+        private int CalculateFcs(IEnumerable<byte> message) => message.Aggregate(0, (fcs, b) => (byte)fcs ^ b);
 
         private bool IsCollisionOccured() => TimeOdd();
 
         private bool IsChannelBusy() => TimeOdd();
 
-        private bool IsJamSignalRecieved(byte[] message) => message.Length == 1 && message[0] == JAM_SIGNAL;
+        private bool IsJamSignalRecieved(byte[] message)
+        {
+            return message.Contains(JAM_SIGNAL);
+        }
 
         private void DelaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))));
 
-        private bool TimeOdd() => DateTime.Now.Millisecond % 2 == 0;
+        private bool TimeOdd() => DateTime.Now.Millisecond / 10 % 2 == 0;
     }
 }
