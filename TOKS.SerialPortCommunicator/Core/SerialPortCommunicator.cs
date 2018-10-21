@@ -2,19 +2,24 @@
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using TOKS.SerialPortCommunicator.Exceptions;
 using TOKS.SerialPortCommunicator.Extensions;
 using TOKS.SerialPortCommunicator.Interfaces;
 using TOKS.SerialPortCommunicator.Models;
+using static TOKS.SerialPortCommunicator.Models.Package;
 
 namespace TOKS.SerialPortCommunicator.Core
 {
     public class SerialPortCommunicator
     {
-        private const byte JAM_SIGNAL = 125;
+        private DateTime _lastTokenRecieved;
 
-        private SerialPort _serialPort;
+        private SerialPort _recieverSerialPort;
+        private SerialPort _senderSerialPort;
+
+        private Queue<DataBlock> messageQueue = new Queue<DataBlock>();
+
         private byte _portId;
 
         private readonly IMessageCoder _coder;
@@ -23,12 +28,9 @@ namespace TOKS.SerialPortCommunicator.Core
 
         public delegate void ErrorEventHandler(object sender, EventArgs e);
 
-        public bool IsOpen => _serialPort?.IsOpen ?? false;
+        public bool IsOpen => _recieverSerialPort?.IsOpen ?? false;
 
-        public SerialPortCommunicator(IMessageCoder coder)
-        {
-            _coder = coder;
-        }
+        public SerialPortCommunicator(IMessageCoder coder) => _coder = coder;
 
         /// <summary>
         /// Open port with settings
@@ -39,20 +41,71 @@ namespace TOKS.SerialPortCommunicator.Core
         {
             if (IsOpen) return;
 
-            _serialPort = new SerialPort()
+            _recieverSerialPort = new SerialPort()
             {
-                PortName = config.PortName,
+                PortName = config.RecieverPortName,
                 BaudRate = (int)config.BaudRate,
                 Parity = config.Parity,
                 DataBits = (int)config.DataBits,
                 StopBits = config.StopBits
             };
+
+            _senderSerialPort = new SerialPort()
+            {
+                PortName = config.SenderPortName,
+                BaudRate = (int)config.BaudRate,
+                Parity = config.Parity,
+                DataBits = (int)config.DataBits,
+                StopBits = config.StopBits
+            };
+
             _portId = config.PortId;
 
-            _serialPort.Open();
+            _recieverSerialPort.Open();
+            _senderSerialPort.Open();
 
-            if (messageReceivedEventHandler != null) _serialPort.DataReceived += (sender, args) => messageReceivedEventHandler(sender, args);
-            if (errorEventHandler != null) _serialPort.ErrorReceived += (sender, args) => errorEventHandler(sender, args);
+            if (config.IsMonitorStation) Task.Run(() => WatchTokenRestore());
+
+            if (messageReceivedEventHandler != null)
+            {
+                _recieverSerialPort.DataReceived += (sender, args) => messageReceivedEventHandler(sender, args);
+                if (config.IsMonitorStation) _recieverSerialPort.DataReceived += (s, e) => UpdateTokenRecievedDate();
+            }
+
+            if (errorEventHandler != null)
+            {
+                _recieverSerialPort.ErrorReceived += (sender, args) => errorEventHandler(sender, args);
+            }
+        }
+
+        public void UpdateTokenRecievedDate()
+        {
+            _lastTokenRecieved = DateTime.Now;
+        }
+
+        /// <summary>
+        /// Restores token if it has been lost
+        /// </summary>
+        public async Task WatchTokenRestore()
+        {
+            while (IsOpen)
+            {
+                if (DateTime.Now > _lastTokenRecieved.AddSeconds(2))
+                {
+                    Package package = new Package()
+                    {
+                        AccessControl = new AccessControlByte()
+                        {
+                            MonitorBit = true,
+                            TokenBit = true,
+                            PriorityBits = 0,
+                            ReservationBits = 0
+                        }
+                    };
+                    _senderSerialPort.Write(package);
+                }
+                await Task.Delay(1000);
+            }
         }
 
         /// <summary>
@@ -61,31 +114,64 @@ namespace TOKS.SerialPortCommunicator.Core
         public void Close()
         {
             if (!IsOpen) return;
-            _serialPort.Close();
-            _serialPort.Dispose();
-            _serialPort = null;
+            _recieverSerialPort.Close();
+            _recieverSerialPort.Dispose();
+            _recieverSerialPort = null;
+
+            _senderSerialPort.Close();
+            _senderSerialPort.Dispose();
+            _senderSerialPort = null;
         }
 
         /// <summary>
         /// Read message from serial port
         /// </summary>
         /// <returns>Existing string</returns>
-        public string Read()
+        public void Read(out string message)
         {
-            var buffer = new byte[_serialPort.BytesToRead];
+            message = String.Empty;
 
-            _serialPort.Read(buffer, 0, buffer.Length);
+            var package = _recieverSerialPort.Read();
 
-            if (IsJamSignalRecieved(buffer)) return "<<< JAM SIGNAL RECIEVED >>>\n";
+            if (package.AccessControl.TokenBit == true)
+            {
+                if (messageQueue.Any())
+                {
+                    package.AccessControl.TokenBit = false;
+                    package.FrameControl = new FrameControlByte()
+                    {
+                        AddressRecognized = false,
+                        FrameCopied = false
+                    };
+                    package.Data = messageQueue.Dequeue();
+                }
 
-            var package = buffer.ToPackage();
+                _senderSerialPort.Write(package);
+                return;
+            }
 
-            if (package.DestinationAddress != _portId) return String.Empty;
+            if (package.Data.SenderAddress == _portId)
+            {
+                package.AccessControl.TokenBit = true;
 
-            if (package.FCS != CalculateFcs(package.Message)) throw new IncorrectFCSException("FCS is incorrect!");
+                _senderSerialPort.Write(package);
+                return;
+            }
 
-            var message = _coder.Decode(package.Message);
-            return message;
+            if (package.Data.DestinationAddress == _portId)
+            {
+                if (package.Data.FCS != CalculateFcs(package.Data.Message)) throw new IncorrectFCSException("FCS is incorrect!");
+
+                package.FrameControl.AddressRecognized = true;
+                package.FrameControl.FrameCopied = true;
+
+                message = _coder.Decode(package.Data.Message);
+
+                _senderSerialPort.Write(package);
+                return;
+            }
+
+            _senderSerialPort.Write(package);
         }
 
         /// <summary>
@@ -97,7 +183,7 @@ namespace TOKS.SerialPortCommunicator.Core
         {
             var byteMessage = _coder.Encode(message);
 
-            var package = new Package()
+            var data = new DataBlock()
             {
                 DestinationAddress = destinationAddress,
                 SenderAddress = _portId,
@@ -106,22 +192,7 @@ namespace TOKS.SerialPortCommunicator.Core
                 FCS = CalculateFcs(byteMessage)
             };
 
-            var msgArray = package.ToByteArray();
-
-            for (int numberOfAttempt = 0; ; numberOfAttempt++)
-            {
-                if (!IsCollisionOccured())
-                {
-                    _serialPort.Write(msgArray, 0, msgArray.Length);
-                    break;
-                }
-                else
-                {
-                    _serialPort.Write(new byte[] { JAM_SIGNAL }, 0, 1);
-                    DelaySending(numberOfAttempt);
-                }
-                Thread.Sleep(99);
-            }
+            messageQueue.Enqueue(data);
         }
 
         /// <summary>
@@ -132,18 +203,5 @@ namespace TOKS.SerialPortCommunicator.Core
         /// File control sum
         /// </returns>
         private int CalculateFcs(IEnumerable<byte> message) => message.Aggregate(0, (fcs, b) => (byte)fcs ^ b);
-
-        private bool IsCollisionOccured() => TimeOdd();
-
-        private bool IsChannelBusy() => TimeOdd();
-
-        private bool IsJamSignalRecieved(byte[] message)
-        {
-            return message.Contains(JAM_SIGNAL);
-        }
-
-        private void DelaySending(int number) => Thread.Sleep(new Random().Next((int)Math.Pow(2, Math.Min(10, number))));
-
-        private bool TimeOdd() => DateTime.Now.Millisecond / 10 % 2 == 0;
     }
 }

@@ -14,32 +14,6 @@ namespace TOKS.UnitTests
     public class PackageTests
     {
         [TestMethod]
-        public void PackTest()
-        {
-            byte senderAddress = 1;
-            byte destinationAddress = 2;
-            int fcs = 1;
-            var message = new BaseCoder().Encode("sampletext");
-
-            Package package = new Package()
-            {
-                DestinationAddress = destinationAddress,
-                SenderAddress = senderAddress,
-                Length = (short)message.Length,
-                Message = message,
-                FCS = fcs
-            };
-
-            var result = package.ToByteArray();
-
-            Assert.AreEqual(result[0], destinationAddress);
-            Assert.AreEqual(result[1], senderAddress);
-            Assert.AreEqual(BitConverter.ToInt16(result, 2) , message.Length);
-            CollectionAssert.AreEqual(result.Skip(4).Take(message.Length).ToArray() , message);
-            Assert.AreEqual(BitConverter.ToInt32(result.Reverse().Take(4).Reverse().ToArray() , 0), fcs);
-        }
-
-        [TestMethod]
         public void PackUnpack()
         {
             byte senderAddress = 1;
@@ -49,14 +23,58 @@ namespace TOKS.UnitTests
 
             Package package = new Package()
             {
-                DestinationAddress = destinationAddress,
-                SenderAddress = senderAddress,
-                Length = (short)message.Length,
-                Message = message,
-                FCS = fcs
+                AccessControl = new Package.AccessControlByte()
+                {
+                    PriorityBits = 1,
+                    TokenBit = false,
+                    MonitorBit = false,
+                    ReservationBits = 2
+                },
+                FrameControl = new Package.FrameControlByte()
+                {
+                    AddressRecognized = false,
+                    FrameCopied = true
+                },
+                Data = new Package.DataBlock()
+                {
+                    DestinationAddress = destinationAddress,
+                    SenderAddress = senderAddress,
+                    Length = (short)message.Length,
+                    Message = message,
+                    FCS = fcs
+                }
             };
 
-            CollectionAssert.AreEqual(package.Message, package.ToByteArray().ToPackage().Message);
+            var result = package.ToByteArray().ToPackage();
+
+            Assert.AreEqual(result.AccessControl.PriorityBits, 1);
+            Assert.AreEqual(result.AccessControl.TokenBit, false);
+            Assert.AreEqual(result.AccessControl.MonitorBit, false);
+            Assert.AreEqual(result.AccessControl.ReservationBits, 2);
+
+            Assert.AreEqual(result.FrameControl.AddressRecognized, false);
+            Assert.AreEqual(result.FrameControl.FrameCopied, true);
+
+            CollectionAssert.AreEqual(package.Data.Message, result.Data.Message);
+        }
+
+        [TestMethod]
+        public void AccessControlPackUnpack()
+        {
+            Package.AccessControlByte accessControl = new Package.AccessControlByte()
+            {
+                PriorityBits = 1,
+                TokenBit = true,
+                MonitorBit = false,
+                ReservationBits = 2
+            };
+
+            var result = accessControl.ToByte().ToAccessControl();
+
+            Assert.AreEqual(result.PriorityBits, 1);
+            Assert.AreEqual(result.TokenBit, true);
+            Assert.AreEqual(result.MonitorBit, false);
+            Assert.AreEqual(result.ReservationBits, 2);
         }
     }
 }
