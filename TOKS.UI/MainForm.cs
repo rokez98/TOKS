@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using TOKS.SerialPortCommunicator.Core;
 using TOKS.SerialPortCommunicator.Enums;
@@ -11,7 +12,7 @@ namespace TOKS.UI
 {
     public partial class MainWindow : Form
     {
-        private readonly SerialPortCommunicator.Core.SerialPortCommunicator _serialPortCommunicator ;
+        private readonly SerialPortCommunicator.Core.SerialPortCommunicator _serialPortCommunicator;
 
 
         public MainWindow()
@@ -20,7 +21,7 @@ namespace TOKS.UI
 
             IMessageCoder coder = new BaseCoder();
 
-            _serialPortCommunicator  = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
+            _serialPortCommunicator = new SerialPortCommunicator.Core.SerialPortCommunicator(coder);
 
             baudrateComboBox.InitializeWithEnum(typeof(EBaudRate), item => (int)item, selectedIndex: 1);
             dataBitsComboBox.InitializeWithEnum(typeof(EDataBits), item => (int)item, selectedIndex: 3);
@@ -61,7 +62,7 @@ namespace TOKS.UI
 
             try
             {
-                _serialPortCommunicator .Open(serialPortConfig, OnMessageRecieved, OnErrorRecieved);
+                _serialPortCommunicator.Open(serialPortConfig, OnMessageRecieved, OnErrorRecieved);
             }
             catch (Exception ex)
             {
@@ -72,7 +73,7 @@ namespace TOKS.UI
 
         private void CloseSerialPort()
         {
-            _serialPortCommunicator .Close();
+            _serialPortCommunicator.Close();
         }
 
         public void OnMessageRecieved(object sender, EventArgs args)
@@ -96,7 +97,7 @@ namespace TOKS.UI
 
         private void startStopButton_Click(object sender, EventArgs e)
         {
-            if (_serialPortCommunicator .IsOpen)
+            if (_serialPortCommunicator.IsOpen)
                 CloseSerialPort();
             else
                 OpenSerialPort();
@@ -106,7 +107,7 @@ namespace TOKS.UI
 
         private void RefreshView()
         {
-            var isStarted = _serialPortCommunicator .IsOpen;
+            var isStarted = _serialPortCommunicator.IsOpen;
 
             recieverPortComboBox.Enabled = !isStarted;
             senderPortComboBox.Enabled = !isStarted;
@@ -133,7 +134,9 @@ namespace TOKS.UI
                 if (inputTextBox.Text != string.Empty)
                 {
                     var destinationAddress = Convert.ToByte(DestinationAdress.Value);
-                    _serialPortCommunicator.Send(inputTextBox.Text, destinationAddress);
+
+                    Task.Run(() => { while (true) { _serialPortCommunicator.Send(Convert.ToString(SenderAddress.Value), destinationAddress); } });
+                    // _serialPortCommunicator.Send(inputTextBox.Text, destinationAddress);
                 }
                 inputTextBox.Clear();
             }

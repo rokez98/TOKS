@@ -18,6 +18,8 @@ namespace TOKS.SerialPortCommunicator.Core
         private SerialPort _recieverSerialPort;
         private SerialPort _senderSerialPort;
 
+        private byte Priority;
+
         private Queue<DataBlock> messageQueue = new Queue<DataBlock>();
 
         private byte _portId;
@@ -40,6 +42,8 @@ namespace TOKS.SerialPortCommunicator.Core
         public void Open(SerialPortConfig config, ReceivedEventHandler messageReceivedEventHandler, ErrorEventHandler errorEventHandler)
         {
             if (IsOpen) return;
+
+            Priority = config.PortId;
 
             _recieverSerialPort = new SerialPort()
             {
@@ -135,15 +139,30 @@ namespace TOKS.SerialPortCommunicator.Core
 
             if (package.AccessControl.TokenBit == true)
             {
-                if (messageQueue.Any())
+                if (messageQueue.Count > 0)
                 {
-                    package.AccessControl.TokenBit = false;
-                    package.FrameControl = new FrameControlByte()
+                    if (package.AccessControl.PriorityBits <= Priority)
                     {
-                        AddressRecognized = false,
-                        FrameCopied = false
-                    };
-                    package.Data = messageQueue.Dequeue();
+                        package.AccessControl.PriorityBits = Priority;
+                        package.AccessControl.TokenBit = false;
+                        package.AccessControl.ReservationBits = 0;
+
+                        package.FrameControl = new FrameControlByte()
+                        {
+                            AddressRecognized = false,
+                            FrameCopied = false
+                        };
+                        package.Data = messageQueue.Dequeue();
+
+                        Priority = (byte) Math.Max(Priority - 1, 1);
+                    }
+                    else
+                    {
+                       if (package.AccessControl.ReservationBits < Priority) package.AccessControl.ReservationBits = Priority;
+
+                        Priority = (byte)Math.Min(Priority + 1, 7);
+                    }
+
                 }
 
                 _senderSerialPort.Write(package);
@@ -152,6 +171,8 @@ namespace TOKS.SerialPortCommunicator.Core
 
             if (package.Data.SenderAddress == _portId)
             {
+                package.AccessControl.PriorityBits = package.AccessControl.ReservationBits;
+                package.AccessControl.ReservationBits = 0;
                 package.AccessControl.TokenBit = true;
 
                 _senderSerialPort.Write(package);
@@ -169,6 +190,15 @@ namespace TOKS.SerialPortCommunicator.Core
 
                 _senderSerialPort.Write(package);
                 return;
+            }
+
+            if (package.AccessControl.ReservationBits < Priority)
+            {
+                if (messageQueue.Count > 0)
+                {
+                    package.AccessControl.ReservationBits = Priority;
+                    Priority = (byte)Math.Min(Priority + 1, 7);
+                }
             }
 
             _senderSerialPort.Write(package);
